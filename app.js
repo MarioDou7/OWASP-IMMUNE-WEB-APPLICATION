@@ -11,21 +11,24 @@ const path = require('path')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const MySQL = require('mysql')
+const dotenv = require('dotenv')
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
 // ======================================================================================
 var app = express();
-// var router = express.router();
 const port = 5000;
+const publicDir = path.join(__dirname, './public')
+app.use(express.static(publicDir))
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+app.set('view engine', 'hbs')
 app.use(logger('dev'));
 app.use(express.json());
 app.use(cookieParser());
+app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-// Cookie Parser Functionality
+dotenv.config({ path: './.env' })
+    // Cookie Parser Functionality
 app.use(
     session({
         secret: 'OWASP_SECRET',
@@ -54,35 +57,79 @@ Conn.connect(function(err) {
 // ======================================================================================
 // ------------------------------ The Internal App Logic --------------------------------
 // ======================================================================================
-// Idiomatic expression in express to route and respond to a client request
 // Get requests to the root ("/") will route here
 app.get('/', (req, res) => {
-    // Server responds by sending the index.html file to the client's browser
-    res.sendFile('/Register.html', { root: __dirname });
-    // The .sendFile method needs the absolute path to the file
-    // See: https://expressjs.com/en/4x/api.html#res.sendFile 
+    // Server responds by sending the index.hbs file to the client's browser
+    res.render("index");
 });
 
-app.post("/Register.html", (req, res) => {
-    // Add  Registeration Information to the MySQL Database
-    var username = req.body.R_Username;
-    var email = req.body.R_Email;
-    var password = req.body.R_Password;
-    // MySQL Query for Inserting Data
-    var SqlQuery = `INSERT INTO Users (Username, Email, Password_SHA256) VALUES 
-    ("${username}", "${email}", SHA2("${password}", 256));`;
+app.get("/register", (req, res) => {
+    res.render("register");
+});
 
-    // Updating the Database with the new values
-    Conn.query(SqlQuery, function(err, result) {
+// Validating the Registration Data
+app.post("/auth/register", (req, res) => {
+    // Getting the registration form Data
+    const { name, email, password, password_confirm } = req.body
+
+    // Ensure theat the Email Address is not already registered
+    Conn.query('SELECT email FROM users WHERE email = ?', [email], (err, result) => {
         if (err) throw err;
-        console.log("Rows Updated\nData Stored Successfully\n");
+        if (result.length > 0) {
+            return res.render('register', {
+                message: 'This Email is already in use'
+            })
+        }
     });
 
-    // Redirect the Registered User to the Login Page
-    res.sendFile("/Login.html", { root: __dirname });
-})
+    // Ensure that the password and password confirmation are the same
+    if (password !== password_confirm) {
+        return res.render('register', {
+            message: 'Passwords do not match'
+        })
+    }
 
-app.post("/Login.html", (req, res) => {
+    // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
+    if (password.length < 8 || password.length > 32) {
+        return res.render('register', {
+            message: 'Your Password Show be Between 8 - 32 Characters'
+        })
+    } else if (!password.match(".*\\d.*")) {
+        return res.render('register', {
+            message: 'Your Password Show Contain At least 1 Digit'
+        })
+    } else if (!password.match(".*[a-z].*")) {
+        return res.render('register', {
+            message: 'Your Password Show Contain At least 1 Lowercase Character'
+        })
+    } else if (!password.match(".*[A-Z].*")) {
+        return res.render('register', {
+            message: 'Your Password Show Contain At least 1 Uppercase Character'
+        })
+    } else if (!password.match('[!@#$%^&*(),.?":{}|<>]')) {
+        return res.render('register', {
+            message: 'Your Password Show Contain At least 1 Special Character'
+        })
+    }
+
+    // MySQL Query for Inserting Data
+    var SqlQuery = `INSERT INTO Users (Username, Email, Password_SHA256) VALUES 
+            ("${name}", "${email}", SHA2("${password}", 256));`;
+
+    // Adding the New User to the Database
+    Conn.query(SqlQuery, function(err, result) {
+        if (err) throw err;
+        return res.render('register', {
+            success: 'Registration Successful'
+        })
+    });
+});
+
+app.get("/login", (req, res) => {
+    res.render("login");
+});
+
+app.post("/auth/login", (req, res) => {
     // Check the Entered Credentials against the Database
     var email = req.body.L_Email;
     var password = req.body.L_Password;
@@ -90,7 +137,7 @@ app.post("/Login.html", (req, res) => {
     if (email && password) {
         SqlQuery = `SELECT * FROM Users WHERE Email = "${email}" AND Password_SHA256 = "SHA2("${password}", 256)`;
 
-        Conn.query(query, function(error, data) {
+        Conn.query(query, function(err, data) {
             if (err) throw err;
 
             if (data.length > 0) {
@@ -106,10 +153,9 @@ app.post("/Login.html", (req, res) => {
         res.send('Please Enter Email Address and Password Details');
         console.log("Please Enter Email Address and Password");
     }
-    // if doesn't exist send 404 (Not Found)
-    // res.sendStatus(404);
-})
+});
 
-app.listen(port, () => { //server starts listening for any attempts from a client to connect at port: {port}
+// Start Listening on the Specified Port
+app.listen(port, () => {
     console.log(`Now listening on port ${port}`);
 });

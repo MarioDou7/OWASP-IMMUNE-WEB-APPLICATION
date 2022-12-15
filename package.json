@@ -1,28 +1,33 @@
 {
-  "name": "cybersecurity",
-  "version": "1.0.0",
-  "description": "A secure web application that is immune to some of the OWASP Top 10 2021",
-  "main": "index.js",
-  "scripts": {
-    "devStart": "nodemon index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION.git"
-  },
-  "author": "Mario Mamdouh",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION/issues"
-  },
-  "homepage": "https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION#readme",
-  "dependencies": {
-    "ejs": "^3.1.8",
-    "express": "^4.18.2",
-    "oracledb": "^5.5.0"
-  },
-  "devDependencies": {
-    "dotenv": "^16.0.3",
-    "nodemon": "^2.0.20"
-  }
+    "name": "cybersecurity",
+    "version": "1.0.0",
+    "description": "A secure web application that is immune to some of the OWASP Top 10 2021",
+    "main": "app.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "nodemon app.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION.git"
+    },
+    "author": "Mario Mamdouh",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION/issues"
+    },
+    "homepage": "https://github.com/MarioDou7/OWASP-IMMUNE-WEB-APPLICATION#readme",
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "body-parser": "^1.20.1",
+        "cookie-parser": "^1.4.6",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "express-flash": "^0.0.2",
+        "express-session": "^1.17.3",
+        "hbs": "^4.2.0",
+        "morgan": "^1.10.0",
+        "mysql": "^2.18.1",
+        "nodemon": "^2.0.20"
+    }
 }

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+</head>
+
+<body>
+
+    {{!-- Navigation links --}}
+    <nav class="navbar p-4 navbar-expand-lg navbar-dark bg-dark">
+        <h4 class="navbar-brand">OWASP Secure Web Application</h4>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    {{!-- Body --}}
+    <div class="container mt-4">
+        <div class="mt-4 p-5 bg-primary text-white rounded">
+            <h1>Upload Your Documents</h1>
+            <p>This Web Application Allows the User to Upload his documents in a Secure Way (Anti OWASP Top 10 Vulnerabilities)</p>
+            <h3>Security Measures: </h3>
+            <ul>
+                <li>Prevent Path Traversal Vulnerabilities</li>
+                <li>Strong Cryptographic Encryption Algorithms</li>
+                <li>Prevent SQL Injection and Cross Site Scripting Attacks</li>
+                <li>Limit False Login Attempts (Prevent Brute-Forcing)</li>
+                <li>Validates Uploaded Images</li>
+                <li>Two Factor Authenticaiton Measures</li>
+                <li>Hashed Passwords</li>
+            </ul>
+        </div>
+    </div>
+    <br><br>
+    <footer class="mx-auto" style="width: 400px;">
+        Copyright @ Loka & Dou7 Inc. and Other Contributors.
+    </footer>
+    <br>
+</body>
+
+</html>
