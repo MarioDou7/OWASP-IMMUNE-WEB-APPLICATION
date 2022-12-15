@@ -70,17 +70,8 @@ app.get("/register", (req, res) => {
 // Validating the Registration Data
 app.post("/auth/register", (req, res) => {
     // Getting the registration form Data
-    const { name, email, password, password_confirm } = req.body
-
-    // Ensure theat the Email Address is not already registered
-    Conn.query('SELECT email FROM users WHERE email = ?', [email], (err, result) => {
-        if (err) throw err;
-        if (result.length > 0) {
-            return res.render('register', {
-                message: 'This Email is already in use'
-            })
-        }
-    });
+    var { name, email, password } = req.body
+    var password_confirm = req.body.passwordConf;
 
     // Ensure that the password and password confirmation are the same
     if (password !== password_confirm) {
@@ -112,16 +103,29 @@ app.post("/auth/register", (req, res) => {
         })
     }
 
-    // MySQL Query for Inserting Data
-    var SqlQuery = `INSERT INTO Users (Username, Email, Password_SHA256) VALUES 
-            ("${name}", "${email}", SHA2("${password}", 256));`;
-
-    // Adding the New User to the Database
-    Conn.query(SqlQuery, function(err, result) {
+    // Ensure theat the Email Address is not already registered
+    Conn.query("SELECT * FROM Users WHERE Email = ?", [
+        req.body.email,
+    ], (err, result) => {
         if (err) throw err;
-        return res.render('register', {
-            success: 'Registration Successful'
-        })
+        if (result.length > 0) {
+            console.log("Email is already registered");
+            return res.render('register', {
+                message: 'This Email is already in use'
+            })
+        } else {
+            // Adding the New User to the Database
+            Conn.query("INSERT INTO Users (Username, Email, Password_SHA256) VALUES (?, ?, SHA2(?, 256))", [
+                req.body.name,
+                req.body.email,
+                req.body.password,
+            ], function(err, result) {
+                if (err) throw err;
+                return res.render('register', {
+                    success: 'Registration Successful'
+                })
+            });
+        }
     });
 });
 
@@ -131,28 +135,34 @@ app.get("/login", (req, res) => {
 
 app.post("/auth/login", (req, res) => {
     // Check the Entered Credentials against the Database
-    var email = req.body.L_Email;
-    var password = req.body.L_Password;
+    var name = req.body.name;
+    var password = req.body.password;
 
-    if (email && password) {
-        SqlQuery = `SELECT * FROM Users WHERE Email = "${email}" AND Password_SHA256 = "SHA2("${password}", 256)`;
-
-        Conn.query(query, function(err, data) {
+    //var query = `SELECT * FROM Users WHERE Username = "${name}" AND Password_SHA256 = SHA2("${password}", 256)`
+    if (name && password) {
+        Conn.query("SELECT * FROM Users WHERE Username = ? AND Password_SHA256 = SHA2(?, 256)", [
+            req.body.name,
+            req.body.password,
+        ], function(err, data) {
             if (err) throw err;
-
             if (data.length > 0) {
-                req.session.loggedin = true;
-                console.log("Login successful");
-                res.sendFile("/user.html", { root: __dirname });
+                if (name == "Admin") res.render("admin");
+                else res.render("user");
             } else {
-                res.send('Incorrect Email or Password');
-                console.log("Incorrect Email or Password");
+                return res.render('login', {
+                    message: 'Wrong username or password'
+                })
             }
         });
-    } else {
-        res.send('Please Enter Email Address and Password Details');
-        console.log("Please Enter Email Address and Password");
     }
+});
+
+app.post("admin", (req, res) => {
+    res.render("admin");
+});
+
+app.post("user", (req, res) => {
+    res.render("user");
 });
 
 // Start Listening on the Specified Port
