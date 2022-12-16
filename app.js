@@ -8,10 +8,14 @@ const flash = require('express-flash')
 const express = require('express')
 const logger = require('morgan')
 const path = require('path')
+const modemon = require('nodemon')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const MySQL = require('mysql')
 const dotenv = require('dotenv')
+var formidable = require('formidable');
+var fs = require('fs');
+const multer = require("multer");
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
@@ -163,6 +167,24 @@ app.post("admin", (req, res) => {
 
 app.post("user", (req, res) => {
     res.render("user");
+});
+
+const upload = multer({
+    dest: "/path/to/temporary/directory/to/store/uploaded/files"
+});
+
+app.post("/fileUpload", (req, res) => {
+    upload.single("file"), (req, res) => {
+        const tempPath = req.file.path;
+        const targetPath = path.join(__dirname, "./images/image.png");
+
+        fs.rename(tempPath, targetPath, err => {
+            if (err) throw err;
+            return res.render('user', {
+                message: 'Image Uploaded Successfully'
+            })
+        });
+    }
 });
 
 // Start Listening on the Specified Port
