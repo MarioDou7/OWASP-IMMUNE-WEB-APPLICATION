@@ -80,10 +80,16 @@ app.post("/auth/register", (req, res) => {
     //check injection
 
     // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
-    controller.verify_password(password);
+    var respones = controller.verify_password(password);
 
+    if (respones){
+        return res.render(respones.page, {message: respones.message})
+    }
     // Ensure theat the Email Address is not already registered
-    db.register_user(email, name, password);
+    respones = db.register_user(email, name, password);
+    
+    return res.render(respones.page, {message: respones.message})
+    
 });
 
 app.get("/login", (req, res) => {
@@ -97,7 +103,14 @@ app.post("/auth/login", (req, res) => {
 
     //var query = `SELECT * FROM Users WHERE Username = "${name}" AND Password_SHA256 = SHA2("${password}", 256)`
     if (name && password) {
-        db.check_login(name,password);
+        var values_login = db.check_login(name,password);
+        if(values_login.ret_name)
+        {
+            return res.render(values_login.ret_name);
+        }
+        else {
+            return res.render(values_login.page, {message: values_login.message})
+        }
     }
 });
 

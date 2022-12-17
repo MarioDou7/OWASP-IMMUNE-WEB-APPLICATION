@@ -26,20 +26,23 @@ const findall = () => {
 }
 
 const check_login = (name,password) => {
+    var ret_name;
+
     Conn.query("SELECT * FROM Users WHERE Username = ? AND Password_SHA256 = SHA2(?, 256)", [
         name,
         password,
     ], function(err, data) {
         if (err) throw err;
         if (data.length > 0) {
-            if (name == "Admin") res.render("admin");
-            else res.render("user");
+            if (name == "Admin") ret_name = "admin";
+            else ret_name = "user";
         } else {
-            return res.render('login', {
-                message: 'Wrong username or password'
-            })
+            {page = 'login', 
+                message = 'Wrong username or password'
+            }
         }
     });
+    return {ret_name , page , message};
 }
 
 const register_user = (email , name , password) => {
@@ -49,9 +52,9 @@ const register_user = (email , name , password) => {
         if (err) throw err;
         if (result.length > 0) {
             console.log("Email is already registered");
-            return res.render('register', {
+            return {page:'register', 
                 message: 'This Email is already in use'
-            })
+            }
         } else {
             // Adding the New User to the Database
             Conn.query("INSERT INTO Users (Username, Email, Password_SHA256) VALUES (?, ?, SHA2(?, 256))", [
@@ -60,9 +63,9 @@ const register_user = (email , name , password) => {
                 password,
             ], function(err, result) {
                 if (err) throw err;
-                return res.render('register', {
-                    success: 'Registration Successful'
-                })
+                return {page:'register', 
+                    message: 'Registration Successful'
+                }
             });
         }
     });
