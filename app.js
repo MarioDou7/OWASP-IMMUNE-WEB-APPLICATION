@@ -2,20 +2,22 @@
 // ======================================================================================
 // ------------------------ Importing Some Required Dependencies ------------------------
 // ======================================================================================
-const createError = require('http-errors')
-const session = require('express-session')
-const flash = require('express-flash')
-const express = require('express')
-const logger = require('morgan')
-const path = require('path')
-const modemon = require('nodemon')
-const cookieParser = require('cookie-parser')
-const bodyParser = require('body-parser')
-const MySQL = require('mysql')
-const dotenv = require('dotenv')
-var formidable = require('formidable');
-var fs = require('fs');
-const multer = require("multer");
+const db            = require('./databaseconfig/dbconnection')
+const controller    = require('./controller/index')
+const createError   = require('http-errors')
+const session       = require('express-session')
+const flash         = require('express-flash')
+const express       = require('express')
+const logger        = require('morgan')
+const path          = require('path')
+const modemon       = require('nodemon')
+const cookieParser  = require('cookie-parser')
+const bodyParser    = require('body-parser')
+const MySQL         = require('mysql')
+const dotenv        = require('dotenv')
+var formidable      = require('formidable');
+var fs              = require('fs');
+const multer        = require("multer");
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
@@ -46,18 +48,8 @@ app.use(flash());
 // ======================================================================================
 // ----------------------------- MySQL Database Connection ------------------------------
 // ======================================================================================
-var Conn = MySQL.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "My$qlR00t",
-    database: "U_Data",
-});
 
-Conn.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-});
-
+db.connectDB();
 // ======================================================================================
 // ------------------------------ The Internal App Logic --------------------------------
 // ======================================================================================
@@ -83,54 +75,15 @@ app.post("/auth/register", (req, res) => {
             message: 'Passwords do not match'
         })
     }
+    //check xss
+
+    //check injection
 
     // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
-    if (password.length < 8 || password.length > 32) {
-        return res.render('register', {
-            message: 'Your Password Show be Between 8 - 32 Characters'
-        })
-    } else if (!password.match(".*\\d.*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Digit'
-        })
-    } else if (!password.match(".*[a-z].*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Lowercase Character'
-        })
-    } else if (!password.match(".*[A-Z].*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Uppercase Character'
-        })
-    } else if (!password.match('[!@#$%^&*(),.?":{}|<>]')) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Special Character'
-        })
-    }
+    controller.verify_password(password);
 
     // Ensure theat the Email Address is not already registered
-    Conn.query("SELECT * FROM Users WHERE Email = ?", [
-        req.body.email,
-    ], (err, result) => {
-        if (err) throw err;
-        if (result.length > 0) {
-            console.log("Email is already registered");
-            return res.render('register', {
-                message: 'This Email is already in use'
-            })
-        } else {
-            // Adding the New User to the Database
-            Conn.query("INSERT INTO Users (Username, Email, Password_SHA256) VALUES (?, ?, SHA2(?, 256))", [
-                req.body.name,
-                req.body.email,
-                req.body.password,
-            ], function(err, result) {
-                if (err) throw err;
-                return res.render('register', {
-                    success: 'Registration Successful'
-                })
-            });
-        }
-    });
+    db.register_user(email, name, password);
 });
 
 app.get("/login", (req, res) => {
@@ -144,20 +97,7 @@ app.post("/auth/login", (req, res) => {
 
     //var query = `SELECT * FROM Users WHERE Username = "${name}" AND Password_SHA256 = SHA2("${password}", 256)`
     if (name && password) {
-        Conn.query("SELECT * FROM Users WHERE Username = ? AND Password_SHA256 = SHA2(?, 256)", [
-            req.body.name,
-            req.body.password,
-        ], function(err, data) {
-            if (err) throw err;
-            if (data.length > 0) {
-                if (name == "Admin") res.render("admin");
-                else res.render("user");
-            } else {
-                return res.render('login', {
-                    message: 'Wrong username or password'
-                })
-            }
-        });
+        db.check_login(name,password);
     }
 });
 
