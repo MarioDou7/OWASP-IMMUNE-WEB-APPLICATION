@@ -13,7 +13,6 @@ const path          = require('path')
 const modemon       = require('nodemon')
 const cookieParser  = require('cookie-parser')
 const bodyParser    = require('body-parser')
-const MySQL         = require('mysql')
 const dotenv        = require('dotenv')
 var formidable      = require('formidable');
 var fs              = require('fs');
@@ -49,7 +48,7 @@ app.use(flash());
 // ----------------------------- MySQL Database Connection ------------------------------
 // ======================================================================================
 
-db.connectDB();
+//db.connectDB();
 // ======================================================================================
 // ------------------------------ The Internal App Logic --------------------------------
 // ======================================================================================
@@ -101,7 +100,6 @@ app.post("/auth/login",async (req, res) => {
     var name = req.body.name;
     var password = req.body.password;
 
-    //var query = `SELECT * FROM Users WHERE Username = "${name}" AND Password_SHA256 = SHA2("${password}", 256)`
     if (name && password) {
         var values_login = await db.check_login(name,password);
         if(values_login.ret_name)
