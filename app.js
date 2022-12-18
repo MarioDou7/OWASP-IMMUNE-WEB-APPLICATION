@@ -96,16 +96,17 @@ app.get("/login", (req, res) => {
     res.render("login");
 });
 
-app.post("/auth/login", (req, res) => {
+app.post("/auth/login",async (req, res) => {
     // Check the Entered Credentials against the Database
     var name = req.body.name;
     var password = req.body.password;
 
     //var query = `SELECT * FROM Users WHERE Username = "${name}" AND Password_SHA256 = SHA2("${password}", 256)`
     if (name && password) {
-        var values_login = db.check_login(name,password);
+        var values_login = await db.check_login(name,password);
         if(values_login.ret_name)
         {
+
             return res.render(values_login.ret_name);
         }
         else {
