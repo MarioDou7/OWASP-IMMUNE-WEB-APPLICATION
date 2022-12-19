@@ -99,11 +99,13 @@ app.post("/auth/login",async (req, res) => {
     // Check the Entered Credentials against the Database
     var current_min = new Date().getMinutes();
     var counter = 0;
+    console.log("start here");
 
     var name = req.body.name;
     var password = req.body.password;
 
     if (name && password) {
+        console.log("sending to database server");
         var values_login = await db.check_login(name,password);
         if(values_login.ret_name)
         {
@@ -112,14 +114,20 @@ app.post("/auth/login",async (req, res) => {
         }
         else {
             counter++;
+            console.log(counter);
+            console.log(new Date().getMinutes() - current_min);
+        
+            if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3 ) {
+                //disable user
+                const timeOut = String(Math.round(rlRejected.msBeforeNext / 1000)) || 1;
+                res.set('Retry-After', timeOut);
+                res.status(429).send(`Too many login attempts. Retry after ${timeOut} seconds`);
+            }
             return res.render(values_login.page, {message: values_login.message})
         }
     }
 
-    if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3 ) {
-        //disable user
-        
-    }
+
 
 });
 
