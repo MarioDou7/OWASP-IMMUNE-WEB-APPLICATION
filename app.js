@@ -97,6 +97,9 @@ app.get("/login", (req, res) => {
 
 app.post("/auth/login",async (req, res) => {
     // Check the Entered Credentials against the Database
+    var current_min = new Date().getMinutes();
+    var counter = 0;
+
     var name = req.body.name;
     var password = req.body.password;
 
@@ -108,9 +111,16 @@ app.post("/auth/login",async (req, res) => {
             return res.render(values_login.ret_name);
         }
         else {
+            counter++;
             return res.render(values_login.page, {message: values_login.message})
         }
     }
+
+    if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3 ) {
+        //disable user
+        
+    }
+
 });
 
 app.post("admin", (req, res) => {
