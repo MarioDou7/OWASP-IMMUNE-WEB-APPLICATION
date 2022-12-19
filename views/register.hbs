@@ -31,6 +31,14 @@
         </div>
     </nav>
 
+    {{!-- Success & Error Messages --}}
+    {{#if message }}
+    <h6 class="alert alert-danger mt-4">{{message}}</h6>
+    {{/if}}
+    {{#if success }}
+    <h6 class="alert alert-success mt-4">{{success}}</h6>
+    {{/if}}
+
     {{!-- Body --}}
     <div class="container mt-4">
         <div class="card" style="width: 18rem;">
@@ -59,13 +67,6 @@
             </div>
         </div>
     </div>
-    <br>
-    {{#if message }}
-    <h4 class="alert alert-danger mt-4">{{message}}</h4>
-    {{/if}}
-    {{#if success }}
-    <h4 class="alert alert-success mt-4">{{success}}</h4>
-    {{/if}}
     <br>
     <footer class="mx-auto" style="width: 400px;">
         Copyright @ Loka & Dou7 Inc. and Other Contributors.

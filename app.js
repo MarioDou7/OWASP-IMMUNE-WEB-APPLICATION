@@ -2,16 +2,21 @@
 // ======================================================================================
 // ------------------------ Importing Some Required Dependencies ------------------------
 // ======================================================================================
+const db = require('./databaseconfig/dbconnection')
+const controller = require('./controller/index')
 const createError = require('http-errors')
 const session = require('express-session')
 const flash = require('express-flash')
 const express = require('express')
 const logger = require('morgan')
 const path = require('path')
+const modemon = require('nodemon')
 const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
-const MySQL = require('mysql')
 const dotenv = require('dotenv')
+var formidable = require('formidable');
+var fs = require('fs');
+const multer = require("multer");
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
@@ -27,8 +32,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: false }));
-dotenv.config({ path: './.env' })
-    // Cookie Parser Functionality
+dotenv.config({ path: './.env' });
+// Cookie Parser Functionality
 app.use(
     session({
         secret: 'OWASP_SECRET',
@@ -42,18 +47,8 @@ app.use(flash());
 // ======================================================================================
 // ----------------------------- MySQL Database Connection ------------------------------
 // ======================================================================================
-var Conn = MySQL.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "My$qlR00t",
-    database: "U_Data",
-});
 
-Conn.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-});
-
+//db.connectDB();
 // ======================================================================================
 // ------------------------------ The Internal App Logic --------------------------------
 // ======================================================================================
@@ -68,19 +63,10 @@ app.get("/register", (req, res) => {
 });
 
 // Validating the Registration Data
-app.post("/auth/register", (req, res) => {
+app.post("/auth/register", async(req, res) => {
     // Getting the registration form Data
-    const { name, email, password, password_confirm } = req.body
-
-    // Ensure theat the Email Address is not already registered
-    Conn.query('SELECT email FROM users WHERE email = ?', [email], (err, result) => {
-        if (err) throw err;
-        if (result.length > 0) {
-            return res.render('register', {
-                message: 'This Email is already in use'
-            })
-        }
-    });
+    var { name, email, password } = req.body
+    var password_confirm = req.body.passwordConf;
 
     // Ensure that the password and password confirmation are the same
     if (password !== password_confirm) {
@@ -88,71 +74,77 @@ app.post("/auth/register", (req, res) => {
             message: 'Passwords do not match'
         })
     }
+    //check xss
+
+    //check injection
 
     // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
-    if (password.length < 8 || password.length > 32) {
-        return res.render('register', {
-            message: 'Your Password Show be Between 8 - 32 Characters'
-        })
-    } else if (!password.match(".*\\d.*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Digit'
-        })
-    } else if (!password.match(".*[a-z].*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Lowercase Character'
-        })
-    } else if (!password.match(".*[A-Z].*")) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Uppercase Character'
-        })
-    } else if (!password.match('[!@#$%^&*(),.?":{}|<>]')) {
-        return res.render('register', {
-            message: 'Your Password Show Contain At least 1 Special Character'
-        })
+    var respones = controller.verify_password(password);
+
+    if (respones) {
+        return res.render(respones.page, { message: respones.message })
     }
+    // Ensure theat the Email Address is not already registered
+    respones = await db.register_user(email, name, password);
 
-    // MySQL Query for Inserting Data
-    var SqlQuery = `INSERT INTO Users (Username, Email, Password_SHA256) VALUES 
-            ("${name}", "${email}", SHA2("${password}", 256));`;
+    return res.render(respones.page, { message: respones.message })
 
-    // Adding the New User to the Database
-    Conn.query(SqlQuery, function(err, result) {
-        if (err) throw err;
-        return res.render('register', {
-            success: 'Registration Successful'
-        })
-    });
 });
 
 app.get("/login", (req, res) => {
     res.render("login");
 });
 
-app.post("/auth/login", (req, res) => {
+app.post("/auth/login", async(req, res) => {
     // Check the Entered Credentials against the Database
-    var email = req.body.L_Email;
-    var password = req.body.L_Password;
+    var current_min = new Date().getMinutes();
+    var counter = 0;
 
-    if (email && password) {
-        SqlQuery = `SELECT * FROM Users WHERE Email = "${email}" AND Password_SHA256 = "SHA2("${password}", 256)`;
+    var name = req.body.name;
+    var password = req.body.password;
 
-        Conn.query(query, function(err, data) {
-            if (err) throw err;
+    if (name && password) {
+        var values_login = await db.check_login(name, password);
+        if (values_login.ret_name) {
 
-            if (data.length > 0) {
-                req.session.loggedin = true;
-                console.log("Login successful");
-                res.sendFile("/user.html", { root: __dirname });
-            } else {
-                res.send('Incorrect Email or Password');
-                console.log("Incorrect Email or Password");
-            }
-        });
-    } else {
-        res.send('Please Enter Email Address and Password Details');
-        console.log("Please Enter Email Address and Password");
+            return res.render(values_login.ret_name);
+        } else {
+            counter++;
+            return res.render(values_login.page, { message: values_login.message })
+        }
     }
+
+    if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3) {
+        //disable user
+
+    }
+
+});
+
+app.post("2FactorAuth", (req, res) => {
+    res.render("2FactorAuth")
+});
+
+app.post("admin", (req, res) => {
+    res.render("admin");
+});
+
+app.post("user", (req, res) => {
+    res.render("user");
+});
+
+app.post("/fileUpload", (req, res) => {
+    var form = new formidable.IncomingForm();
+    form.parse(req, function(err, fields, files) {
+        var oldpath = files.filetoupload.filepath;
+        var newpath = 'C:/Users/Your Name/' + files.filetoupload.originalFilename;
+        fs.rename(oldpath, newpath, function(err) {
+            if (err) throw err;
+            res.write('File uploaded and moved!');
+            res.end();
+        });
+    });
+
 });
 
 // Start Listening on the Specified Port
