@@ -45,8 +45,10 @@ app.use(
 );
 app.use(flash());
 
+
 var current_min = 0;
 var counter = 0;
+var username = '';      //used for knowing if admin or a user who is logged in
 
 // ======================================================================================
 // ----------------------------- MySQL Database Connection ------------------------------
@@ -104,18 +106,18 @@ app.post("/auth/login",async (req, res) => {
     if(current_min == 0)
         current_min = new Date().getMinutes();
 
-    console.log("start here");
-
     var name = req.body.name;
     var password = req.body.password;
 
     if (name && password) {
-        console.log("sending to database server");
         var values_login = await db.check_login(name,password);
         if(values_login.ret_name)
         {
-
-            return res.render(values_login.ret_name);
+            //,{username:values_login.ret_name}
+            //send mail function
+            //Genrate otp
+            username = values_login.ret_name;
+            return res.render("2FactorAuth");
         }
         else {
             counter++;
@@ -138,6 +140,19 @@ app.post("/auth/login",async (req, res) => {
 app.post("admin", (req, res) => {
     res.render("admin");
 });
+
+app.post("/auth/2FactorAuth", (req, res) => {
+    res.render("2FactorAuth")
+
+    const pin = req.body.pin;
+    //compare pin with the otp
+    // if true render page user
+    //false send message with false otp
+
+    res.render(username);
+    
+});
+
 
 app.post("user", (req, res) => {
     res.render("user");

@@ -21,4 +21,13 @@ const verify_password = (password) => {
     }
 }
 
+const Genrate_OTP = () =>{
+    const d1 = Math.random();
+    const d2 = Math.random();
+    const d3 = Math.random();
+    const d4 = Math.random();
+
+    
+}
+
 module.exports = {verify_password}
