@@ -27,7 +27,10 @@
         </div>
     </nav>
 
-    {{!-- Success Messages --}}
+    {{!-- Success & Error Messages --}}
+    {{#if message }}
+    <h6 class="alert alert-danger mt-4">{{message}}</h6>
+    {{/if}}
     {{#if success }}
     <h6 class="alert alert-success mt-4">{{success}}</h6>
     {{/if}}
@@ -38,9 +41,9 @@
                 <div class="card" style="width: 18rem;">
                     <div class="card-header">Upload am Image</div>
                     <div class="card-body">
-                        <form action="/fileUpload" method="POST">
+                        <form action="/fileUpload" method="POST" enctype= "multipart/form-data">
                             <div class="mb-3">
-                                <input type="file" class="form-control" name="image" accept="image/*" required>
+                                <input type="file" class="form-control" name="image" accept="image/*">
                             </div>
                             <button type="submit" class="btn btn-primary">Upload</button>
                         </form>
@@ -48,6 +51,17 @@
                 </div>
             </div>
         </div>
+        <br><br>
+        <center >
+            {{#if image }}
+            <img src="{{image}}" />
+            {{/if}}
+        </center>
+        <br>
+        <footer class="mx-auto" style="width: 400px;">
+            Copyright @ Loka & Dou7 Inc. and Other Contributors.
+        </footer>
+        <br>
     </body>
 
 </html>

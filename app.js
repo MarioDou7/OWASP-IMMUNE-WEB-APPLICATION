@@ -79,7 +79,7 @@ app.post("/auth/register", (req, res) => {
     if (password !== password_confirm) {
         return res.render('register', {
             message: 'Passwords do not match'
-        })
+        });
     }
     //check xss
 
@@ -193,6 +193,76 @@ app.post("/fileUpload", (req, res) => {
             })
         });
     }
+
+
+
+});
+
+app.post("admin", (req, res) => {
+    res.render("admin");
+});
+
+app.get("/auth/2FactorAuth", (req, res) => {
+    res.render("2FactorAuth");
+});
+
+app.post("/auth/2FactorAuth", (req, res) => {
+
+    const pin = req.body.pin;
+    //compare pin with the otp
+    if (pin == otp) {
+        console.log("Welcome user, ", username);
+        return res.render(username);
+    }
+    // if true render page user
+    //false send message with false otp
+    console.log("Wrong PIN")
+    return res.render("2FactorAuth", { success: "Wrong OTP" })
+
+});
+
+
+app.post("user", (req, res) => {
+    res.render("user");
+});
+
+var storage = multer.diskStorage({
+    destination: function(req, file, cb) { cb(null, './uploads') },
+    filename: function(req, file, cb) { cb(null, file.originalname) }
+})
+var upload = multer({ storage: storage })
+app.use(express.static(__dirname));
+app.use('/uploads', express.static('uploads'));
+
+app.post("/fileUpload", upload.single('image'), (req, res) => {
+    // If No Image is specified
+    if (!req.file) return res.render('user', {
+        message: 'Please Select an Image'
+    });
+
+    // Allowed Image Extensions
+    const Extensions = ['png', 'jpeg', 'jpg', 'gif'];
+
+    // Getting the extension of the uploaded file
+    const FileType = req.file.originalname.slice(
+        ((req.file.originalname.lastIndexOf('.') - 1) >>> 0) + 2);
+
+    // If the Uploaded file is not an image
+    if (!Extensions.includes(FileType.toLowerCase())) {
+        fs.unlinkSync(req.file.path);
+        return res.render('user', { message: 'Only Images are Allowed' });
+    }
+
+    // If the Uploaded Image Size is larger than 100 KB
+    if ((req.file.size / (1024)) > 100) {
+        fs.unlinkSync(req.file.path);
+        return res.render('user', { message: 'Image Size is too Big (100 KB Max)' });
+    }
+
+    return res.render('user', {
+        success: 'Image Uploaded Successfully',
+        image: req.file.path
+    });
 });
 
 // Start Listening on the Specified Port
