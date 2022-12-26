@@ -18,7 +18,7 @@ const check_login = (name,password) => {
             name,password
         ]);
         
-//console.log(result.data.rows);   //print the results
+        //console.log(result.data.rows);   //print the results
 
         if(result.data.rows.length > 0) {       // if a user is found 
 
@@ -57,30 +57,5 @@ const register_user = (email , name , password) => {
     }
 
 }
-
-
-const retrieve_email = (name,password) => {
-    var email;
-    var result;
     
-    try {
-        result = sync.mysql(config,'SELECT EMAIL FROM u_data.users WHERE Username = ? AND Password_SHA256 = SHA2(?, 256)',
-        [
-            name,password
-        ]);
-        
-        console.log(result.data.rows);
-
-        if(result.data.rows.length > 0) {
-        
-            email = result.data.rows[0].EMAIL;
-        }
-    } catch (error) {
-        return console.error(error);
-    }
-    return email;
-
-}
-
-    
-module.exports = {check_login , register_user , retrieve_email}
+module.exports = {check_login , register_user}

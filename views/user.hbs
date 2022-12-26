@@ -31,14 +31,11 @@
     {{#if message }}
     <h6 class="alert alert-danger mt-4">{{message}}</h6>
     {{/if}}
-    {{#if success }}
-    <h6 class="alert alert-success mt-4">{{success}}</h6>
-    {{/if}}
-
     {{!-- Body --}}
     <body>
             <div class="container mt-4">
                 <div class="card" style="width: 18rem;">
+                    <div> class</div>
                     <div class="card-header">Upload am Image</div>
                     <div class="card-body">
                         <form action="/fileUpload" method="POST" enctype= "multipart/form-data">

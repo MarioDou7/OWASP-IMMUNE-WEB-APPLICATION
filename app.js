@@ -114,16 +114,13 @@ app.post("/auth/login",async (req, res) => {
         user = await db.check_login(name,password);
         if(user)
         {
-            //{username:values_login.ret_name}
-            //username = values_login.ret_name;
-            //get user email
-            //email_of_user = db.retrieve_email(name,password);
             //Genrate otp
             otp = controller.Genrate_OTP();
-            console.log("OTP: ",otp)
-            //send mail function
             
+            console.log("OTP: ",otp)
             console.log(user);
+            
+            //send mail function   
             controller.SendMail(user.Email, otp);
 
             return res.redirect("2FactorAuth");
@@ -138,7 +135,7 @@ app.post("/auth/login",async (req, res) => {
                 res.set('Retry-After', timeOut);
                 res.status(429).send(`Too many login attempts. Retry after ${timeOut} seconds`);
             }
-            return res.render(values_login.page, {message: values_login.message})
+            return res.render("login", {message: "Wrong username or password"})
         }
     }
 
@@ -177,26 +174,6 @@ app.get("/user", (req, res) => {
     res.render("user");
 });
 
-const upload = multer({
-    dest: "/path/to/temporary/directory/to/store/uploaded/files"
-});
-
-app.post("/fileUpload", (req, res) => {
-    upload.single("file"), (req, res) => {
-        const tempPath = req.file.path;
-        const targetPath = path.join(__dirname, "./images/image.png");
-
-        fs.rename(tempPath, targetPath, err => {
-            if (err) throw err;
-            return res.render('user', {
-                message: 'Image Uploaded Successfully'
-            })
-        });
-    }
-
-
-
-});
 
 app.post("admin", (req, res) => {
     res.render("admin");
