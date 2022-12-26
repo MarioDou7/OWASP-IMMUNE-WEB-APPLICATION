@@ -26,12 +26,12 @@ var config = {
 
 try
 {
-    result = sync.mysql(config,'SELECT email FROM u_data.users WHERE Username = "mario" AND Password_SHA256 = SHA2("Dou7101))", 256)');
+    result = sync.mysql(config,'SELECT * FROM u_data.users WHERE Username = "mario" AND Password_SHA256 = SHA2("Dou7101))", 256)');
 } catch (error) {
     console.log(error)
 }
 
 console.log(result.data.rows);
 
-var email = result.data.rows[0].email;
-console.log(email);
+var user = result.data.rows[0];
+console.log(user.Username,user.Email);

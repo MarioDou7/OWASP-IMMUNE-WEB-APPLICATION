@@ -10,9 +10,6 @@ var config = {
 }
 
 const check_login = (name,password) => {
-    var ret_name;
-    var page;
-    var message;
     var result;
     
     try {
@@ -21,15 +18,12 @@ const check_login = (name,password) => {
             name,password
         ]);
         
-        console.log(result.data.rows);
-        if(result.data.rows.length > 0) {
-            if (name == "Admin") ret_name = "admin";
-            else ret_name = "user";
-        } else {
-            page = 'login'; 
-            message = 'Wrong username or password';
+//        console.log(result.data.rows);   //print the results
+
+        if(result.data.rows.length > 0) {       // if a user is found 
+
+            return result.data.rows[0];            //return user
         }
-        return {ret_name , page , message};
     } catch (error) {
         return console.error(error);
     }

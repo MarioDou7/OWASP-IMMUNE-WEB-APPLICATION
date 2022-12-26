@@ -48,9 +48,8 @@ app.use(flash());
 
 var current_min = 0;
 var counter = 0;
-var username = '';      //used for knowing if admin or a user who is logged in
 var otp = 0;
-var email_of_user = '';
+var user = {};      //logged in user object
 
 // ======================================================================================
 // ----------------------------- MySQL Database Connection ------------------------------
@@ -89,8 +88,8 @@ app.post("/auth/register", (req, res) => {
     // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
     var respones = controller.verify_password(password);
 
-    if (respones){
-        return res.render(respones.page, {message: respones.message})
+    if (respones == null){
+        return res.render("login", {message: "Wrong username or password"})
     }
     // Ensure theat the Email Address is not already registered
     respones = db.register_user(email, name, password);
@@ -112,18 +111,20 @@ app.post("/auth/login",async (req, res) => {
     var password = req.body.password;
 
     if (name && password) {
-        var values_login = await db.check_login(name,password);
-        if(values_login.ret_name)
+        user = await db.check_login(name,password);
+        if(user)
         {
             //{username:values_login.ret_name}
-            username = values_login.ret_name;
+            //username = values_login.ret_name;
             //get user email
-            email_of_user = db.retrieve_email(name,password);
+            //email_of_user = db.retrieve_email(name,password);
             //Genrate otp
             otp = controller.Genrate_OTP();
             console.log("OTP: ",otp)
             //send mail function
-            controller.SendMail(email_of_user,otp);
+            
+            console.log(user);
+            controller.SendMail(user.Email, otp);
 
             return res.redirect("2FactorAuth");
         }
@@ -145,7 +146,7 @@ app.post("/auth/login",async (req, res) => {
 
 });
 
-app.post("admin", (req, res) => {
+app.get("admin", (req, res) => {
     res.render("admin");
 });
 
@@ -159,18 +160,20 @@ app.post("/auth/2FactorAuth", (req, res) => {
     //compare pin with the otp
     if(pin == otp)
     {
-        console.log("Welcome user, ", username);   
-        return res.render(username);
+        console.log("Welcome user, ", user.Username);   
+        // if true render page user
+        if(user.Username == "Admin") return res.redirect("/admin")
+        else return res.redirect("/user")
     }
-    // if true render page user
     //false send message with false otp
     console.log("Wrong PIN")
+    
     return res.render("2FactorAuth",{success:"Wrong OTP"})
     
 });
 
 
-app.post("user", (req, res) => {
+app.get("/user", (req, res) => {
     res.render("user");
 });
 
