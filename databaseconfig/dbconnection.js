@@ -18,7 +18,7 @@ const check_login = (name,password) => {
             name,password
         ]);
         
-//        console.log(result.data.rows);   //print the results
+//console.log(result.data.rows);   //print the results
 
         if(result.data.rows.length > 0) {       // if a user is found 
 
