@@ -1,3 +1,5 @@
+const nodemailer = require('nodemailer');
+
 const verify_password = (password) => {
     if (password.length < 8 || password.length > 32) {
         return {page: 'register',
@@ -22,12 +24,40 @@ const verify_password = (password) => {
 }
 
 const Genrate_OTP = () =>{
-    const d1 = Math.random();
-    const d2 = Math.random();
-    const d3 = Math.random();
-    const d4 = Math.random();
-
+    const d1 = Math.floor(Math.random() * (9 - 0) + 0).toString();
+    const d2 = Math.floor(Math.random() * (9 - 0) + 0).toString();
+    const d3 = Math.floor(Math.random() * (9 - 0) + 0).toString();
+    const d4 = Math.floor(Math.random() * (9 - 0) + 0).toString();
     
+    const OTP = d1 + d2 + d3  + d4
+
+    return OTP;
 }
 
-module.exports = {verify_password}
+const SendMail = (user_mail,Pin) => {
+    let mailTransporter = nodemailer.createTransport({
+       service: 'gmail',
+       auth: {
+           user: 'Cyber Security',
+           pass: 'Cyb3rS3ur1ty'
+       }
+    });
+    
+    let mailDetails = {
+       from: 'IMMUNE.WEBAPPLICATION@gmail.com',
+       to: user_mail,
+       subject: 'Test mail',
+       text: 'Please Enter this PIN: '+ Pin
+    };
+    
+    mailTransporter.sendMail(mailDetails, function(err, data) {
+       if(err) {
+           console.log(err);
+       } else {
+           console.log('Email sent successfully');
+       }
+    });
+}
+
+ 
+module.exports = {verify_password, Genrate_OTP, SendMail}

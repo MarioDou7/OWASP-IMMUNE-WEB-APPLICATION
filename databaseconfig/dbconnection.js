@@ -63,5 +63,30 @@ const register_user = (email , name , password) => {
     }
 
 }
+
+
+const retrieve_email = (name,password) => {
+    var email;
+
+    var result;
     
-module.exports = {check_login , register_user}
+    try {
+        result = sync.mysql(config,'SELECT EMAIL FROM u_data.users WHERE Username = ? AND Password_SHA256 = SHA2(?, 256)',
+        [
+            name,password
+        ]);
+        
+        console.log(result.data.rows);
+        if(result.data.rows.length > 0) {
+            email = result.data.rows[0].email;
+        }
+    } catch (error) {
+        return console.error(error);
+    }
+
+    return email;
+
+}
+
+    
+module.exports = {check_login , register_user , retrieve_email}

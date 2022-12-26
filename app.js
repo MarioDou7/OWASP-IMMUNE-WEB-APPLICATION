@@ -49,6 +49,8 @@ app.use(flash());
 var current_min = 0;
 var counter = 0;
 var username = '';      //used for knowing if admin or a user who is logged in
+var otp = 0;
+var email_of_user = '';
 
 // ======================================================================================
 // ----------------------------- MySQL Database Connection ------------------------------
@@ -113,11 +115,17 @@ app.post("/auth/login",async (req, res) => {
         var values_login = await db.check_login(name,password);
         if(values_login.ret_name)
         {
-            //,{username:values_login.ret_name}
-            //send mail function
-            //Genrate otp
+            //{username:values_login.ret_name}
             username = values_login.ret_name;
-            return res.render("2FactorAuth");
+            //get user email
+            email_of_user = db.retrieve_email(name,password);
+            //Genrate otp
+            otp = controller.Genrate_OTP();
+            console.log("OTP: ",otp)
+            //send mail function
+            controller.SendMail(email_of_user,otp);
+            
+            return res.redirect("2FactorAuth");
         }
         else {
             counter++;
@@ -141,15 +149,23 @@ app.post("admin", (req, res) => {
     res.render("admin");
 });
 
+app.get("/auth/2FactorAuth", (req, res) => {
+    res.render("2FactorAuth");
+});
+
 app.post("/auth/2FactorAuth", (req, res) => {
-    res.render("2FactorAuth")
 
     const pin = req.body.pin;
     //compare pin with the otp
+    if(pin == otp)
+    {
+        console.log("Welcome user, ", username);   
+        return res.render(username);
+    }
     // if true render page user
     //false send message with false otp
-
-    res.render(username);
+    console.log("Wrong PIN")
+    return res.render("2FactorAuth",{success:"Wrong OTP"})
     
 });
 
