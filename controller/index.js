@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 
 const verify_password = (password) => {
+
     if (password.length < 8 || password.length > 32) {
         return {page: 'register',
     message: 'Your Password Show be Between 8 - 32 Characters'}

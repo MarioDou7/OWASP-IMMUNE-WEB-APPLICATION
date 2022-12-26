@@ -51,11 +51,7 @@ var counter = 0;
 var otp = 0;
 var user = {};      //logged in user object
 
-// ======================================================================================
-// ----------------------------- MySQL Database Connection ------------------------------
-// ======================================================================================
 
-//db.connectDB();
 // ======================================================================================
 // ------------------------------ The Internal App Logic --------------------------------
 // ======================================================================================
@@ -81,15 +77,12 @@ app.post("/auth/register", (req, res) => {
             message: 'Passwords do not match'
         });
     }
-    //check xss
-
-    //check injection
 
     // (Min 8 Chars | 1 Uppercase | 1 Lowercase | 1 Number | 1 Special Char)
     var respones = controller.verify_password(password);
 
-    if (respones == null){
-        return res.render("login", {message: "Wrong username or password"})
+    if (respones){
+        return res.render("register", {message: respones.message})
     }
     // Ensure theat the Email Address is not already registered
     respones = db.register_user(email, name, password);
@@ -130,7 +123,7 @@ app.post("/auth/login",async (req, res) => {
 
             if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3 ) {
                 //disable user
-                const timeOut = String(Math.round(Math.random())) || 1;
+                const timeOut = 1000;
                 counter = 0;
                 res.set('Retry-After', timeOut);
                 res.status(429).send(`Too many login attempts. Retry after ${timeOut} seconds`);
