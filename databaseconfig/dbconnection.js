@@ -67,7 +67,6 @@ const register_user = (email , name , password) => {
 
 const retrieve_email = (name,password) => {
     var email;
-
     var result;
     
     try {
@@ -77,13 +76,14 @@ const retrieve_email = (name,password) => {
         ]);
         
         console.log(result.data.rows);
+
         if(result.data.rows.length > 0) {
-            email = result.data.rows[0].email;
+        
+            email = result.data.rows[0].EMAIL;
         }
     } catch (error) {
         return console.error(error);
     }
-
     return email;
 
 }

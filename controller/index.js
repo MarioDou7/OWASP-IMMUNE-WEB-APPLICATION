@@ -38,17 +38,19 @@ const SendMail = (user_mail,Pin) => {
     let mailTransporter = nodemailer.createTransport({
        service: 'gmail',
        auth: {
-           user: 'Cyber Security',
+           user: 'cyberproject809@gmail.com',
            pass: 'Cyb3rS3ur1ty'
        }
     });
     
     let mailDetails = {
-       from: 'IMMUNE.WEBAPPLICATION@gmail.com',
+       from: 'cyberproject809@gmail.com',
        to: user_mail,
        subject: 'Test mail',
-       text: 'Please Enter this PIN: '+ Pin
+       html: `<p>Please Enter this PIN: <b>${Pin}</b></p> `
     };
+
+    console.log(mailDetails)
     
     mailTransporter.sendMail(mailDetails, function(err, data) {
        if(err) {

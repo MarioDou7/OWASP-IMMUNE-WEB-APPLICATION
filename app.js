@@ -124,7 +124,7 @@ app.post("/auth/login",async (req, res) => {
             console.log("OTP: ",otp)
             //send mail function
             controller.SendMail(email_of_user,otp);
-            
+
             return res.redirect("2FactorAuth");
         }
         else {
