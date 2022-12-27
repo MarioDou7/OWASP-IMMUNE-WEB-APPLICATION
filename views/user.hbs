@@ -35,7 +35,10 @@
     <body>
             <div class="container mt-4">
                 <div class="card" style="width: 18rem;">
-                    <div> class</div>
+                       {{!-- Success & Error Messages --}}
+                    {{#if username }}
+                    <h6 class="alert alert-success mt-4">Welcome, {{username}}</h6>
+                    {{/if}}
                     <div class="card-header">Upload am Image</div>
                     <div class="card-body">
                         <form action="/fileUpload" method="POST" enctype= "multipart/form-data">

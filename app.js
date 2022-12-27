@@ -17,7 +17,9 @@ const dotenv        = require('dotenv')
 var formidable      = require('formidable');
 var fs              = require('fs');
 const multer        = require("multer");
-const { randomInt } = require('crypto')
+const { randomInt } = require('crypto');
+const rateLimit     = require('express-rate-limit');
+const { escape } = require('querystring')
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
@@ -45,9 +47,18 @@ app.use(
 );
 app.use(flash());
 
+const limiter = rateLimit({
+	windowMs: 1 * 60 * 1000, // 1 minutes
+	max: 3, // Limit each IP to 3 requests per `window` (here, per 1 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    message:
+    'Too many accounts created from this IP, please try again after an 15 seconds',
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    blockDuration: 15 , //block duration with seconds
+})
 
-var current_min = 0;
-var counter = 0;
+
+
 var otp = 0;
 var user = {};      //logged in user object
 
@@ -71,6 +82,9 @@ app.post("/auth/register", (req, res) => {
     var { name, email, password } = req.body
     var password_confirm = req.body.passwordConf;
 
+    console.log(req.body)
+
+
     // Ensure that the password and password confirmation are the same
     if (password !== password_confirm) {
         return res.render('register', {
@@ -85,7 +99,7 @@ app.post("/auth/register", (req, res) => {
         return res.render("register", {message: respones.message})
     }
     // Ensure theat the Email Address is not already registered
-    respones = db.register_user(email, name, password);
+    respones = db.register_user(email, name,password);
     
     return res.render(respones.page, {message: respones.message})
     
@@ -95,10 +109,8 @@ app.get("/login", (req, res) => {
     res.render("login");
 });
 
-app.post("/auth/login",async (req, res) => {
+app.post("/auth/login", limiter, async (req, res) => {
     // Check the Entered Credentials against the Database
-    if(current_min == 0)
-        current_min = new Date().getMinutes();
 
     var name = req.body.name;
     var password = req.body.password;
@@ -119,15 +131,6 @@ app.post("/auth/login",async (req, res) => {
             return res.redirect("2FactorAuth");
         }
         else {
-            counter++;
-
-            if ((new Date().getMinutes() - current_min) <= 1 && counter >= 3 ) {
-                //disable user
-                const timeOut = 1000;
-                counter = 0;
-                res.set('Retry-After', timeOut);
-                res.status(429).send(`Too many login attempts. Retry after ${timeOut} seconds`);
-            }
             return res.render("login", {message: "Wrong username or password"})
         }
     }
@@ -135,12 +138,7 @@ app.post("/auth/login",async (req, res) => {
 
 
 });
-
-app.get("admin", (req, res) => {
-    res.render("admin");
-});
-
-app.get("/auth/2FactorAuth", (req, res) => {
+app.get("/auth/2FactorAuth", (req,res) => {
     res.render("2FactorAuth");
 });
 
@@ -152,11 +150,10 @@ app.post("/auth/2FactorAuth", (req, res) => {
     {
         console.log("Welcome user, ", user.Username);   
         // if true render page user
-        if(user.Username == "Admin") return res.redirect("/admin")
+        if(user.Username == "Admin") return res.render("admin",)
         else return res.redirect("/user")
     }
     //false send message with false otp
-    console.log("Wrong PIN")
     
     return res.render("2FactorAuth",{success:"Wrong OTP"})
     
@@ -164,37 +161,9 @@ app.post("/auth/2FactorAuth", (req, res) => {
 
 
 app.get("/user", (req, res) => {
-    res.render("user");
+    res.render("user",{username: escape(user.Username)});
 });
 
-
-app.post("admin", (req, res) => {
-    res.render("admin");
-});
-
-app.get("/auth/2FactorAuth", (req, res) => {
-    res.render("2FactorAuth");
-});
-
-app.post("/auth/2FactorAuth", (req, res) => {
-
-    const pin = req.body.pin;
-    //compare pin with the otp
-    if (pin == otp) {
-        console.log("Welcome user, ", username);
-        return res.render(username);
-    }
-    // if true render page user
-    //false send message with false otp
-    console.log("Wrong PIN")
-    return res.render("2FactorAuth", { success: "Wrong OTP" })
-
-});
-
-
-app.post("user", (req, res) => {
-    res.render("user");
-});
 
 var storage = multer.diskStorage({
     destination: function(req, file, cb) { cb(null, './uploads') },

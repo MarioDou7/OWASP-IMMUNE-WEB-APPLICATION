@@ -50,8 +50,6 @@ const SendMail = (user_mail,Pin) => {
        subject: 'Test mail',
        html: `<p>Please Enter this PIN: <b>${Pin}</b></p> `
     };
-
-    console.log(mailDetails)
     
     mailTransporter.sendMail(mailDetails, function(err, data) {
        if(err) {
@@ -61,6 +59,7 @@ const SendMail = (user_mail,Pin) => {
        }
     });
 }
+
 
  
 module.exports = {verify_password, Genrate_OTP, SendMail}
