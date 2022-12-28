@@ -2,34 +2,34 @@
 // ======================================================================================
 // ------------------------ Importing Some Required Dependencies ------------------------
 // ======================================================================================
-const db = require('./databaseconfig/dbconnection')
-const controller = require('./controller/index')
-const createError = require('http-errors')
-const session = require('express-session')
-const flash = require('express-flash')
-const express = require('express')
-const logger = require('morgan')
-const path = require('path')
-const modemon = require('nodemon')
-const cookieParser = require('cookie-parser')
-const bodyParser = require('body-parser')
-const dotenv = require('dotenv')
-var formidable = require('formidable');
-var fs = require('fs');
-const multer = require("multer");
-const { randomInt } = require('crypto');
-const rateLimit = require('express-rate-limit');
-const { escape } = require('querystring')
-const { Http2ServerRequest } = require('http2')
-const https = require("https");
-const { Server } = require('tls');
-const process = require('process');
+var fs                          = require('fs');
+const db                        = require('./databaseconfig/dbconnection')
+const path                      = require('path')
+const flash                     = require('express-flash')
+const https                     = require("https");
+const dotenv                    = require('dotenv')
+const multer                    = require("multer");
+const logger                    = require('morgan')
+const session                   = require('express-session')
+const express                   = require('express')
+const modemon                   = require('nodemon')
+const process                   = require('process');
+const rateLimit                 = require('express-rate-limit');
+const controller                = require('./controller/index')
+const bodyParser                = require('body-parser')
+const createError               = require('http-errors')
+const cookieParser              = require('cookie-parser')
+const { randomInt }             = require('crypto');
+const { escape }                = require('querystring')
+const { Server }                = require('tls');
+var formidable                  = require('formidable');
+const { Http2ServerRequest }    = require('http2')
 
 // ======================================================================================
 // ----------------------------- Instantiate The Express App ----------------------------
 // ======================================================================================
 var app = express();
-const port = 5000;
+//const port = 5000;
 const httpsPort = 5001;
 const publicDir = path.join(__dirname, './public')
 app.use(express.static(publicDir))
@@ -71,7 +71,7 @@ var user = {}; //logged in user object
 // Get requests to the root ("/") will route here
 app.get('/', (req, res) => {
     // Server responds by sending the index.hbs file to the client's browser
-    res.render("admin");
+    res.render("index");
 });
 
 app.get("/register", (req, res) => {
@@ -150,7 +150,7 @@ app.post("/auth/2FactorAuth", (req, res) => {
         console.log("Welcome user, ", user.Username);
         // if true render page user
         if (user.Username == "Admin") return res.render("admin", )
-        else return res.redirect("/user")
+        else return res.render("user", { username: escape(user.Username)});
     }
     //false send message with false otp
 
@@ -159,9 +159,9 @@ app.post("/auth/2FactorAuth", (req, res) => {
 });
 
 
-app.get("/user", (req, res) => {
-    res.render("user", { username: escape(user.Username) });
-});
+// app.get("/user", (req, res) => {
+//     res.render("user", { username: escape(user.Username) });
+// });
 
 
 var storage = multer.diskStorage({
@@ -220,9 +220,9 @@ app.post("/adminDelete", function(req, res) {
 });
 
 // Start Listening on the Specified Port
-app.listen(port, () => {
-    console.log(`Now listening on port ${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`Now listening on port ${port}`);
+// });
 
 https.createServer({
         key: fs.readFileSync("key.pem"),
