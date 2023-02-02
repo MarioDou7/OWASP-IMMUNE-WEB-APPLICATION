@@ -10,9 +10,6 @@ var config = {
 }
 
 const check_login = (name, password) => {
-    var ret_name;
-    var page;
-    var message;
     var result;
 
     try {
@@ -20,15 +17,12 @@ const check_login = (name, password) => {
             name, password
         ]);
 
-        console.log(result.data.rows);
-        if (result.data.rows.length > 0) {
-            if (name == "Admin") ret_name = "admin";
-            else ret_name = "user";
-        } else {
-            page = 'login';
-            message = 'Wrong username or password';
+        // console.log(result.data.rows);   //print the results
+
+        if (result.data.rows.length > 0) { // if a user is found 
+
+            return result.data.rows[0]; //return user
         }
-        return { ret_name, page, message };
     } catch (error) {
         return console.error(error);
     }
@@ -39,7 +33,7 @@ const register_user = (email, name, password) => {
     var result;
     try {
         result = sync.mysql(config, "SELECT * FROM Users WHERE Email = ?", [email]);
-        console.log(result.data.rows);
+
         if (result.data.rows.length > 0) {
             console.log("Email is already registered");
             return {
@@ -59,9 +53,50 @@ const register_user = (email, name, password) => {
             }
         }
     } catch (error) {
-        return console.error(error.message);
+        return console.error(err.message);
     }
 
 }
 
-module.exports = { check_login, register_user }
+const search_user = (username) => {
+    var result;
+    try {
+        result = sync.mysql(config, 'SELECT * FROM u_data.users WHERE Username = ?', [username, ]);
+        if (result.data.rows.length > 0) {
+            return {
+                page: 'admin',
+                message: 'There is a user with that username: ' + username
+            }
+        } else {
+            return {
+                page: 'admin',
+                message: 'No users found'
+            }
+        }
+    } catch (error) {
+        return console.error(error);
+    }
+}
+
+const delete_user = (username) => {
+    var result;
+    try {
+        result = sync.mysql(config, 'SELECT * FROM u_data.users WHERE Username = ?', [username, ]);
+        if (result.data.rows.length > 0) {
+            result = sync.mysql(config, 'DELETE FROM u_data.users WHERE Username = ?', [username, ]);
+            return {
+                page: 'admin',
+                message: 'User: ' + username + 'has been deleted'
+            }
+        } else {
+            return {
+                page: 'admin',
+                message: 'No users found'
+            }
+        }
+    } catch (error) {
+        return console.error(error);
+    }
+}
+
+module.exports = { check_login, register_user, search_user, delete_user }
