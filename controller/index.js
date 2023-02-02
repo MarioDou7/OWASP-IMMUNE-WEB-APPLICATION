@@ -40,7 +40,7 @@ const SendMail = (user_mail,Pin) => {
        service: 'gmail',
        auth: {
            user: 'cyberproject809@gmail.com',
-           pass: 'ydkcsevgxypmeymy'
+           pass: '[YOUR APP FACTOR PASSWORD]'
        }
     });
     
